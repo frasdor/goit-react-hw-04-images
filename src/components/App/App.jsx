@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import Searchbar from '../Searchbar/Searchbar';
 import ImageGallery from '../ImageGallery/ImageGallery';
 import Button from '../Button/Button';
@@ -7,116 +7,76 @@ import Modal from '../Modal/Modal';
 import { fetchImages } from '../../api/api';
 import styles from './App.module.css';
 
-class App extends Component {
-  state = {
-    images: [],
-    query: '',
-    page: 1,
-    loading: false,
-    showModal: false,
-    largeImageURL: null,
-    error: null, // Nowy stan dla przechowywania błędów
-  };
+const App = () => {
+  const [images, setImages] = useState([]);
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [largeImageURL, setLargeImageURL] = useState(null);
+  const [error, setError] = useState(null);
 
-  componentDidMount() {
-    // Inicjalne pobieranie danych, jeśli to konieczne
-  }
+  useEffect(() => {
+    if (!query) return;
 
-  componentDidUpdate(prevProps, prevState) {
-    const { query, page } = this.state;
-    if (prevState.query !== query || prevState.page !== page) {
-      this.fetchImages();
-    }
-  }
+    const fetchImagesData = async () => {
+      setLoading(true);
+      setError(null); 
 
-  fetchImages = () => {
-    const { query, page } = this.state;
-    this.setState({ loading: true, error: null  }); // Resetujemy stan błędu przed nowym zapytaniem
+      try {
+        const newImages = await fetchImages(query, page);
 
-    fetchImages(query, page)
-      .then((newImages) => {
         if (newImages.length === 0) {
-          this.setState({ error: 'No search results found.' });
-          return;
-        }
-        this.setState((prevState) => ({
-          images: [...prevState.images, ...newImages],
-        }), () => {
-          // Scrollowanie w dół po dodaniu nowych obrazów
+          setError('No search results found.'); 
+        } else {
+          setImages((prevImages) => [...prevImages, ...newImages]);
+          // Scroll down after new images are added
           window.scrollTo({
             top: document.documentElement.scrollHeight,
             behavior: 'smooth',
           });
-        });
-      })
-      .catch(() => {
-        this.setState({ error: 'An error occurred while fetching images.' });
-      })
-      .finally(() => this.setState({ loading: false }));
+        }
+      } catch {
+        setError('An error occurred while fetching images.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchImagesData();
+  }, [query, page]);
+
+  const handleSearchSubmit = (newQuery) => {
+    setQuery(newQuery);
+    setImages([]);
+    setPage(1);
+    setError(null); 
   };
 
-  handleSearchSubmit = (newQuery) => {
-    this.setState({ query: newQuery, images: [], page: 1, error: null });
+  const handleLoadMore = () => {
+    setPage((prevPage) => prevPage + 1); 
   };
 
-  handleLoadMore = () => {
-    this.setState((prevState) => ({ page: prevState.page + 1 }));
+  const handleImageClick = (url) => {
+    setLargeImageURL(url);
+    setShowModal(true);
   };
 
-  handleImageClick = (url) => {
-    this.setState({ largeImageURL: url, showModal: true });
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setLargeImageURL(null);
   };
 
-  handleCloseModal = () => {
-    this.setState({ showModal: false, largeImageURL: null });
-  };
-
-  render() {
-    const { images, loading, showModal, largeImageURL, error } = this.state;
-    return (
-      <div className={styles.app}>
-        <Searchbar onSubmit={this.handleSearchSubmit} />
-        {showModal && <Modal largeImageURL={largeImageURL} onClose={this.handleCloseModal} />}
-        {error && <p className={styles.error}>{error}</p>} {/* Wyświetlanie komunikatu błędu */}
-        <ImageGallery images={images} onImageClick={this.handleImageClick} />
-        {loading && <Loader />}
-        {images.length > 0 && !loading && <Button onClick={this.handleLoadMore} />}
-        
-      </div>
-    );
-  }
-}
+  return (
+    <div className={styles.app}>
+      <Searchbar onSubmit={handleSearchSubmit} />
+      {showModal && <Modal largeImageURL={largeImageURL} onClose={handleCloseModal} />}
+      {error && <p className={styles.error}>{error}</p>} 
+      <ImageGallery images={images} onImageClick={handleImageClick} />
+      {loading && <Loader />}
+      {images.length > 0 && !loading && <Button onClick={handleLoadMore} />}
+    </div>
+  );
+};
 
 export default App;
-
-
-
-
-
-
-
-
-
-
-
-
-// Your API key: 46136265-8c05b511bcb8d1129c580e4d3
-
-
-
-// export const App = () => {
-//   return (
-//     <div
-//       style={{
-//         height: '100vh',
-//         display: 'flex',
-//         justifyContent: 'center',
-//         alignItems: 'center',
-//         fontSize: 40,
-//         color: '#010101'
-//       }}
-//     >
-//       React homework template
-//     </div>
-//   );
-// };

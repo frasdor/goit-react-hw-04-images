@@ -3,9 +3,7 @@ import { ThreeDots } from 'react-loader-spinner';
 import styles from './Loader.module.css';
 
 
-class Loader extends React.Component {
-    render() {
-      return (
+const Loader = () => (
         <div className={styles.loader}>
             <ThreeDots
           visible={true}
@@ -19,7 +17,7 @@ class Loader extends React.Component {
         />
         </div>
       );
-    }
-  }
+    
+  
   
 export default Loader;

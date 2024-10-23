@@ -2,10 +2,7 @@ import React from 'react';
 import ImageGalleryItem from '../ImageGalleryItem/ImageGalleryItem';
 import styles from './ImageGallery.module.css'
 
-class ImageGallery extends React.Component {
-  render() {
-    const { images, onImageClick } = this.props;
-    return (
+const ImageGallery = ({ images, onImageClick }) => (
       <ul className={styles.gallery}>
         {images.map(({ id, webformatURL, largeImageURL }) => (
           <ImageGalleryItem
@@ -17,7 +14,5 @@ class ImageGallery extends React.Component {
         ))}
       </ul>
     );
-  }
-}
 
 export default ImageGallery;
