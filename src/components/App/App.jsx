@@ -30,12 +30,8 @@ const App = () => {
           setError('No search results found.'); 
         } else {
           setImages((prevImages) => [...prevImages, ...newImages]);
-          // Scroll down after new images are added
-          window.scrollTo({
-            top: document.documentElement.scrollHeight,
-            behavior: 'smooth',
-          });
         }
+          
       } catch {
         setError('An error occurred while fetching images.');
       } finally {
@@ -45,6 +41,16 @@ const App = () => {
 
     fetchImagesData();
   }, [query, page]);
+
+  // Scroll down after new images are added
+  useEffect(() => {
+    if (images.length > 0) {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
+  }, [images]);
 
   const handleSearchSubmit = (newQuery) => {
     setQuery(newQuery);
